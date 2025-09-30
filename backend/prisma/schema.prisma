@@ -1,0 +1,40 @@
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+}
+
+model Person {
+  id             Int      @id @default(autoincrement())
+  name           String
+  age            Int?
+  entryTime      String   // <-- El campo que faltaba
+  photoUrl       String?  // <-- Para el futuro
+  facialEncoding Json?    // <-- Cambié 'encodings' a un nombre más claro
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  attendances Attendance[]
+}
+
+model Attendance {
+  id         Int       @id @default(autoincrement())
+  personId   Int
+  entryAt    DateTime
+  exitAt     DateTime?
+  status     String    // <-- Para saber si llegó a tiempo o tarde
+  person     Person    @relation(fields: [personId], references: [id])
+}
