@@ -1,7 +1,4 @@
-version: "3.9"
-
 services:
-  # 1. Servicio de Base de Datos PostgreSQL
   postgres:
     image: postgres:16
     container_name: postgres-controldeacceso
@@ -14,28 +11,40 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - access-net
 
-  # 2. Servicio de Backend (Node.js)
   backend:
-    build: ./backend # Docker construirá la imagen desde la carpeta backend
+    build: ./backend
     container_name: backend-service
     restart: always
     ports:
       - "3001:3001"
     depends_on:
-      - postgres # Espera a que la base de datos se inicie
+      - postgres
+      - face-service
     environment:
-      # Pasa las variables a tu app Node.js
       DATABASE_URL: "postgresql://dev:dev@postgres:5432/controldeacceso"
-      FACE_SERVICE_URL: http://face-service:5000 # La URL para comunicarse con el servicio de Python
+      FACE_SERVICE_URL: http://face-service:5000
+    networks:
+      - access-net
+    # --- AQUÍ ESTÁ EL VOLUMEN MÁGICO ---
+    volumes:
+      # Conecta tu carpeta de Windows con la del contenedor
+      - ./backend/public:/usr/src/app/public
 
-  # 3. Servicio de Reconocimiento Facial (Python)
   face-service:
-    build: ./face-service # Construye desde la carpeta face-service
+    build: ./face-service
     container_name: face-service
     restart: always
     ports:
       - "5000:5000"
+    networks:
+      - access-net
 
 volumes:
-  postgres_data: # Este volumen guarda los datos de la DB para que no se borren
+  postgres_data:
+
+networks:
+  access-net:
+    driver: bridge

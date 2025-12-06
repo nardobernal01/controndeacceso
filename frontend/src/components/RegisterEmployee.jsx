@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: "http://localhost:3001/api",
 });
 
-function RegisterEmployee() {
+function RegisterEmployee({ onEmployeeRegistered }) {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [entryTime, setEntryTime] = useState("");
@@ -29,7 +29,21 @@ function RegisterEmployee() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setMessage(`¡${response.data.name} registrado con éxito!`);
+
+      // Avisamos a la App principal para que actualice la lista y contadores
+      if (onEmployeeRegistered) {
+        onEmployeeRegistered();
+      }
+
+      // Limpiamos el formulario
+      setName("");
+      setAge("");
+      setEntryTime("");
+      setPhoto(null);
+      // Nota: Para limpiar visualmente el input de archivo, se requeriría una referencia (ref),
+      // pero esto limpia el estado interno que es lo importante.
     } catch (error) {
+      console.error("Error de registro:", error);
       setMessage("Error al registrar. Revisa la consola.");
       setIsError(true);
     }
